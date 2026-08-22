@@ -341,67 +341,137 @@ def register_tools(bot):
             return await message.reply_text(
                 "Usage:\n/text2gif ʏᴏᴜʀ ᴛᴇxᴛ"
             )
+
         text = message.text.split(None, 1)[1]
+
         wait = await message.reply_text(
             "🎞 <b>Gᴇɴᴇʀᴀᴛɪɴɢ Gɪғ...</b>\n"
             "⏳ Pʟᴇᴀsᴇ ᴡᴀɪᴛ ᴀ sᴇᴄ...",
             parse_mode=ParseMode.HTML
         )
+  
+        gif_file = f"textgif_{message.from_user.id}.gif"
+
         try:
+
             frames = []
 
-            for i in range(15):
+            # Higher resolution
+            width = 1000
+            height = 400
 
+            # Better font
+            font = None
+
+            font_paths = [
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
+                "arial.ttf"
+            ]
+
+            for font_path in font_paths:
+                if os.path.exists(font_path):
+                    try:
+                        font = ImageFont.truetype(
+                            font_path,
+                            55
+                        )
+                        break
+                    except:
+                        pass
+
+            if font is None:
+                font = ImageFont.load_default()
+
+            # Create smooth animation
+            total_frames = 30
+
+            for i in range(total_frames):
+   
                 img = Image.new(
                     "RGB",
-                    (800, 300),
+                    (width, height),
                     (25, 25, 25)
                 )
 
                 draw = ImageDraw.Draw(img)
 
-                try:
-                    font = ImageFont.truetype(
-                        "arial.ttf",
-                        45
-                    )
-                except:
-                    font = ImageFont.load_default()
+                # Text size
+                bbox = draw.textbbox(
+                    (0, 0),
+                    text,
+                    font=font
+                )
 
-                x = 30 + (i * 15)
+                text_width = bbox[2] - bbox[0]
+                text_height = bbox[3] - bbox[1]
 
+                # Smooth horizontal movement
+                start_x = width
+                end_x = -text_width
+
+                progress = i / (total_frames - 1)
+
+                x = int(
+                    start_x +
+                    (end_x - start_x) * progress
+                )
+ 
+                y = (height - text_height) // 2
+
+                # Shadow
                 draw.text(
-                    (x, 120),
+                    (x + 3, y + 3),
+                    text,
+                    fill=(0, 0, 0),
+                    font=font
+                )
+
+                # Main text
+                draw.text(
+                    (x, y),
                     text,
                     fill=(255, 255, 255),
                     font=font
                 )
 
-                frames.append(img)
+                # Convert to optimized GIF palette
+                frame = img.convert(
+                    "P",
+                    palette=Image.Palette.ADAPTIVE,
+                    colors=256
+                )
 
-            gif_file = f"textgif_{message.from_user.id}.gif"
+                frames.append(frame)
 
-            imageio.mimsave(
+            # Save high-quality GIF
+            frames[0].save(
                 gif_file,
-                frames,
-                duration=0.10
+                save_all=True,
+                append_images=frames[1:],
+                duration=80,
+                loop=0,
+                optimize=False,
+                disposal=2
             )
+
             await wait.delete()
 
             buttons = InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton(
-                            "• ᴜᴘᴅᴀᴛᴇs •",
-                            url="https://t.me/Aero_Unity"
-                        ),
-                        InlineKeyboardButton(
-                            "• ᴄʟᴏsᴇ •",
-                            callback_data="close"
-                        )
+                          InlineKeyboardButton(
+                              "• ᴜᴘᴅᴀᴛᴇs •",
+                              url="https://t.me/Aero_Unity"
+                          ),
+                          InlineKeyboardButton(
+                              "• ᴄʟᴏsᴇ •",
+                              callback_data="close"
+                          )
                     ]
                 ]
             )
+
             await message.reply_animation(
                 animation=gif_file,
                 caption=(
@@ -411,13 +481,25 @@ def register_tools(bot):
                 parse_mode=ParseMode.HTML,
                 reply_markup=buttons
             )
-            os.remove(gif_file)
+
+            if os.path.exists(gif_file):
+                os.remove(gif_file)
 
         except Exception as e:
 
-            await wait.edit_text(
-                f"❌ Error:\n{e}"
-            )
+            if os.path.exists(gif_file):
+                try:
+                    os.remove(gif_file)
+                except:
+                    pass
+
+            try:
+                await wait.edit_text(
+                    f"❌ <b>Eʀʀᴏʀ:</b>\n<code>{e}</code>",
+                    parse_mode=ParseMode.HTML
+                )
+            except:
+                pass
 
     # ---------------- WEATHER ---------------- #
     @bot.on_message(filters.command("weather"))
