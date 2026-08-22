@@ -979,7 +979,7 @@ async def privacy(client, message):
     await message.reply_photo(
         photo="https://graph.org/file/ffdbc01d09855874311b1-5f3f1eae52d984db3d.jpg",
         caption="""
-ʜᴇʀᴇ ɪs ᴛʜᴇ ᴘʀɪᴠᴀᴄʏ & ᴘᴏʟɪᴄʏ ᴏғ ᴛʜᴇ ʙᴏᴛ:
+<blockquote><b>ʜᴇʀᴇ ɪs ᴛʜᴇ ᴘʀɪᴠᴀᴄʏ & ᴘᴏʟɪᴄʏ ᴏғ ᴛʜᴇ ʙᴏᴛ:</blockquote></b>
 
 ➲ ᴡᴇ ᴏɴʟʏ ꜱᴛᴏʀᴇ ᴜꜱᴇʀ ɪᴅꜱ ᴀɴᴅ ɴᴏᴛʜɪɴɢ ᴇʟꜱᴇ.
 
